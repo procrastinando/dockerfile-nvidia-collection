@@ -1,4 +1,4 @@
-# Use CUDA-enabled base image with Python 3.11 support
+# Use a CUDA-enabled base image with Python 3.11 support
 FROM nvidia/cuda:12.1.1-base-ubuntu22.04
 
 # Set environment variables
@@ -9,7 +9,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
     PHONEMIZER_ESPEAK_LIBRARY="/usr/local/lib/libespeak-ng.so" \
     PHONEMIZER_ESPEAK_PATH="/usr/local/share/espeak-ng"
 
-# Update and install basic dependencies
+# Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3.11 python3.11-venv python3.11-dev \
     git wget curl build-essential ffmpeg libespeak-ng1 libespeak-ng-dev \
@@ -19,34 +19,36 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN curl -sS https://bootstrap.pypa.io/get-pip.py | python3.11 && \
     pip install --no-cache-dir --upgrade pip setuptools wheel
 
-# Clone the repository and set up submodules
+# Set up working directory
 WORKDIR /app
-RUN git clone --recursive https://github.com/JarodMica/audiobook_maker.git .
+
+# Clone the repository and initialize submodules
+RUN git clone --recursive https://github.com/JarodMica/StyleTTS-WebUI.git . && \
+    git submodule init && \
+    git submodule update --remote
 
 # Create and activate Python virtual environment
 RUN python3.11 -m venv venv
 ENV PATH="/app/venv/bin:$PATH"
 
-# Install basic requirements
+# Install PyTorch and its dependencies
+RUN pip install torch==2.3.1 torchvision==0.18.1 torchaudio==2.3.1 --index-url https://download.pytorch.org/whl/cu121
+
+# Install project requirements
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Install additional dependencies for TTS and STT engines
-RUN cd modules/tortoise_tts_api && \
-    pip install . && \
-    cd ../../modules/styletts-api && \
-    pip install . && \
-    cd ../.. && \
-    pip install monotonic_align-1.2-cp311-cp311-linux_x86_64.whl
+# Install additional StyleTTS dependencies
+RUN pip install ./modules/StyleTTS2/ && \
+    python ./modules/StyleTTS2/styletts2/download_punkt.py
 
-# Install RVC dependencies
-RUN pip install git+https://github.com/JarodMica/rvc-python.git && \
-    pip install ./fairseq-0.12.4-cp311-cp311-linux_x86_64.whl
-
-# Install PyTorch with CUDA support
-RUN pip install torch==2.4.0 torchvision==0.19.0 torchaudio==2.4.0 --index-url https://download.pytorch.org/whl/cu121
+# Ensure proper placement of pretrained models
+RUN mkdir -p models/pretrain_base_1 && \
+    wget -P models/pretrain_base_1 https://huggingface.co/yl4579/StyleTTS2-LibriTTS/resolve/main/Models/LibriTTS/epochs_2nd_00020.pth && \
+    wget -P models/pretrain_base_1 https://huggingface.co/yl4579/StyleTTS2-LibriTTS/resolve/main/Models/LibriTTS/config.yml
 
 # Expose the application port
 EXPOSE 8000
 
-# Command to start the application
-CMD ["python", "src/controller.py"]
+# Start the application
+CMD ["python", "webui.py"]
