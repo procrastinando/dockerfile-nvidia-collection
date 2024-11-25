@@ -7,6 +7,14 @@ ARG HF_ENDPOINT=https://huggingface.co
 WORKDIR /opt/fish-speech
 
 RUN set -ex \
+    && apt-get update \
+    && apt-get -y install --no-install-recommends git \
+    && git clone https://github.com/fishaudio/fish-speech.git . \
+    && apt-get -y purge git \
+    && apt-get -y autoremove \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN set -ex \
     && pip install huggingface_hub \
     && HF_ENDPOINT=${HF_ENDPOINT} huggingface-cli download --resume-download fishaudio/${HUGGINGFACE_MODEL} --local-dir checkpoints/${HUGGINGFACE_MODEL}
 
