@@ -2,7 +2,7 @@
 
 ## Build the image:
 ```
-docker build -t f5-tts --file dockerfile-f5-tts https://github.com/procrastinando/F5-TTS-dockerfile.git#main:.
+docker build -t f5-tts --file dockerfile-f5-tts https://github.com/procrastinando/dockerfile-nvidia-collection.git#main:.
 ```
 ### Deploy Option 1: by command:
 ```
@@ -28,5 +28,5 @@ services:
 ```
 docker rm -f f5-tts
 docker rmi -f f5-tts
-docker build --no-cache --pull -t f5-tts --file dockerfile-f5-tts https://github.com/procrastinando/F5-TTS-dockerfile.git#main:.
+docker build --no-cache --pull -t f5-tts --file dockerfile-f5-tts https://github.com/procrastinando/dockerfile-nvidia-collection.git#main:.
 ```
