@@ -1,32 +1,29 @@
-# 1. F5-TTS: A Fairytaler that Fakes Fluent and Faithful Speech with Flow Matching
+FROM pytorch/pytorch:2.4.0-cuda12.4-cudnn9-devel
 
-### Build the image:
-```
-docker build -t f5-tts --file dockerfile-f5-tts https://github.com/procrastinando/F5-TTS-dockerfile.git#main:.
-```
-#### Deploy Option 1: by command:
-```
-docker run --gpus all -d -p 7861:7860 f5-tts
-```
-#### Deploy Option 2: as stack:
-```
-services:
-  app:
-    image: f5-tts
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: all
-              capabilities: [gpu]
-    ports:
-      - "7861:7860"
-    restart: unless-stopped
-```
-### Force update:
-```
-docker rm -f f5-tts
-docker rmi -f f5-tts
-docker build --no-cache --pull -t f5-tts https://github.com/procrastinando/F5-TTS-dockerfile.git#main:.
-```
+USER root
+
+ARG DEBIAN_FRONTEND=noninteractive
+
+LABEL github_repo="https://github.com/SWivid/F5-TTS"
+
+RUN set -x \
+    && apt-get update \
+    && apt-get -y install wget curl man git less openssl libssl-dev unzip unar build-essential aria2 tmux vim \
+    && apt-get install -y openssh-server sox libsox-fmt-all libsox-fmt-mp3 libsndfile1-dev ffmpeg \
+    && apt-get install -y librdmacm1 libibumad3 librdmacm-dev libibverbs1 libibverbs-dev ibverbs-utils ibverbs-providers \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
+    
+WORKDIR /workspace
+
+RUN git clone https://github.com/SWivid/F5-TTS.git \
+    && cd F5-TTS \
+    && git submodule update --init --recursive \
+    && sed -i '7iimport sys\nsys.path.append(os.path.dirname(os.path.abspath(__file__)))' src/third_party/BigVGAN/bigvgan.py \
+    && pip install -e . --no-cache-dir
+
+ENV SHELL=/bin/bash
+
+WORKDIR /workspace/F5-TTS
+
+CMD ["f5-tts_infer-gradio", "--port", "7860"]
