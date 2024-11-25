@@ -62,3 +62,36 @@ docker rm -f fish-speech
 docker rmi -f fish-speech
 docker build --no-cache --pull -t fish-speech --file dockerfile-fish-speech https://github.com/procrastinando/dockerfile-nvidia-collection.git#main:.
 ```
+
+# 3. AUDIOBOOK MAKER:
+
+## Build the image:
+```
+docker build -t audiobook-maker --file dockerfile-audiobook-maker https://github.com/procrastinando/dockerfile-nvidia-collection.git#main:.
+```
+### Deploy Option 1: by command:
+```
+docker run --gpus all -d -p 7862:7860 audiobook-maker
+```
+### Deploy Option 2: as stack:
+```
+services:
+  app:
+    image: audiobook-maker
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    ports:
+      - "7863:7860"
+    restart: unless-stopped
+```
+## Force update:
+```
+docker rm -f audiobook-maker
+docker rmi -f audiobook-maker
+docker build --no-cache --pull -t audiobook-maker --file dockerfile-audiobook-maker https://github.com/procrastinando/dockerfile-nvidia-collection.git#main:.
+```
