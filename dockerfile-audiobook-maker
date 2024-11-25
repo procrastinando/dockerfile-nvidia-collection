@@ -1,5 +1,5 @@
-# Use CUDA-enabled base image with Python 3.11
-FROM nvidia/cuda:12.1.1-base-ubuntu20.04
+# Use CUDA-enabled base image with Python 3.11 support
+FROM nvidia/cuda:12.1.1-base-ubuntu22.04
 
 # Set environment variables
 ENV DEBIAN_FRONTEND=noninteractive \
@@ -21,7 +21,7 @@ RUN curl -sS https://bootstrap.pypa.io/get-pip.py | python3.11 && \
 
 # Clone the repository and set up submodules
 WORKDIR /app
-RUN git clone --recursive https://github.com/JarodMica/audiobook_maker.git . 
+RUN git clone --recursive https://github.com/JarodMica/audiobook_maker.git .
 
 # Create and activate Python virtual environment
 RUN python3.11 -m venv venv
