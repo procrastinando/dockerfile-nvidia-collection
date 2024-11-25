@@ -26,4 +26,9 @@ ENV SHELL=/bin/bash
 
 WORKDIR /workspace/F5-TTS
 
-CMD ["f5-tts_infer-gradio", "--port", "7860"]
+# Set environment variable for clean logs
+ENV PYTHONUNBUFFERED=1
+
+# Launch Gradio app
+WORKDIR /workspace/F5-TTS
+CMD ["f5-tts_infer-gradio", "--port", "7860", "--host", "0.0.0.0"]
