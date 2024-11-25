@@ -1,4 +1,4 @@
-# 1. F5-E2-TTS: A Fairytaler that Fakes Fluent and Faithful Speech with Flow Matching
+# 1. F5-E2-TTS:
 
 ## Build the image:
 ```
