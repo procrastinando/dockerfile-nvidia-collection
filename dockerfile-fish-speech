@@ -6,6 +6,16 @@ ARG HF_ENDPOINT=https://huggingface.co
 
 WORKDIR /opt/fish-speech
 
+# Clone the fish-speech repository
+RUN set -ex \
+    && apt-get update \
+    && apt-get -y install --no-install-recommends git \
+    && git clone https://github.com/fishaudio/fish-speech.git . \
+    && apt-get -y purge git \
+    && apt-get -y autoremove \
+    && rm -rf /var/lib/apt/lists/*
+
+# Download Hugging Face model
 RUN set -ex \
     && pip install huggingface_hub \
     && HF_ENDPOINT=${HF_ENDPOINT} huggingface-cli download --resume-download fishaudio/${HUGGINGFACE_MODEL} --local-dir checkpoints/${HUGGINGFACE_MODEL}
@@ -35,19 +45,16 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
 
 WORKDIR /opt/fish-speech
 
-COPY . .
+# Copy the repository from stage-1
+COPY --from=stage-1 /opt/fish-speech /opt/fish-speech
 
+# Install Python dependencies
 RUN --mount=type=cache,target=/root/.cache,sharing=locked \
     set -ex \
     && pip install -e .[stable]
 
-COPY --from=stage-1 /opt/fish-speech/checkpoints /opt/fish-speech/checkpoints
-
 ENV GRADIO_SERVER_NAME="0.0.0.0"
+
 EXPOSE 7860
 
-# Embedding the entrypoint logic directly in the CMD
-CMD CUDA_ENABLED=${CUDA_ENABLED:-true} && \
-    DEVICE="" && \
-    if [ "$CUDA_ENABLED" != "true" ]; then DEVICE="--device cpu"; fi && \
-    exec python tools/webui.py ${DEVICE}
+CMD ["./entrypoint.sh"]
