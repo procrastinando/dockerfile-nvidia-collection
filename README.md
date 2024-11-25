@@ -30,3 +30,35 @@ docker rm -f f5-e2-tts
 docker rmi -f f5-e2-tts
 docker build --no-cache --pull -t f5-e2-tts --file dockerfile-f5-e2-tts https://github.com/procrastinando/dockerfile-nvidia-collection.git#main:.
 ```
+# 2. FISH SPEECH:
+
+## Build the image:
+```
+docker build -t fish-speech --file dockerfile-fish-speech https://github.com/procrastinando/dockerfile-nvidia-collection.git#main:.
+```
+### Deploy Option 1: by command:
+```
+docker run --gpus all -d -p 7862:7860 fish-speech
+```
+### Deploy Option 2: as stack:
+```
+services:
+  app:
+    image: fish-speech
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    ports:
+      - "7862:7860"
+    restart: unless-stopped
+```
+## Force update:
+```
+docker rm -f fish-speech
+docker rmi -f fish-speech
+docker build --no-cache --pull -t fish-speech --file dockerfile-fish-speech https://github.com/procrastinando/dockerfile-nvidia-collection.git#main:.
+```
