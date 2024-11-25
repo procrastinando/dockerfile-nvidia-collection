@@ -6,16 +6,6 @@ ARG HF_ENDPOINT=https://huggingface.co
 
 WORKDIR /opt/fish-speech
 
-# Clone the fish-speech repository
-RUN set -ex \
-    && apt-get update \
-    && apt-get -y install --no-install-recommends git \
-    && git clone https://github.com/fishaudio/fish-speech.git . \
-    && apt-get -y purge git \
-    && apt-get -y autoremove \
-    && rm -rf /var/lib/apt/lists/*
-
-# Download Hugging Face model
 RUN set -ex \
     && pip install huggingface_hub \
     && HF_ENDPOINT=${HF_ENDPOINT} huggingface-cli download --resume-download fishaudio/${HUGGINGFACE_MODEL} --local-dir checkpoints/${HUGGINGFACE_MODEL}
@@ -45,10 +35,8 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
 
 WORKDIR /opt/fish-speech
 
-# Copy the repository from stage-1
 COPY --from=stage-1 /opt/fish-speech /opt/fish-speech
 
-# Install Python dependencies
 RUN --mount=type=cache,target=/root/.cache,sharing=locked \
     set -ex \
     && pip install -e .[stable]
@@ -57,4 +45,4 @@ ENV GRADIO_SERVER_NAME="0.0.0.0"
 
 EXPOSE 7860
 
-CMD ["./entrypoint.sh"]
+CMD ["python", "tools/webui.py", "--llama-checkpoint-path", "checkpoints/fish-speech-1.4", "--decoder-checkpoint-path", "checkpoints/fish-speech-1.4/firefly-gan-vq-fsq-8x1024-21hz-generator.pth", "--compile"]
