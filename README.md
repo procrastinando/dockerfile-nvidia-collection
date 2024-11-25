@@ -1,18 +1,18 @@
-# 1. F5-TTS: A Fairytaler that Fakes Fluent and Faithful Speech with Flow Matching
+# 1. F5-E2-TTS: A Fairytaler that Fakes Fluent and Faithful Speech with Flow Matching
 
 ## Build the image:
 ```
-docker build -t f5-tts --file dockerfile-f5-tts https://github.com/procrastinando/dockerfile-nvidia-collection.git#main:.
+docker build -t f5-e2-tts --file dockerfile-f5-e2-tts https://github.com/procrastinando/dockerfile-nvidia-collection.git#main:.
 ```
 ### Deploy Option 1: by command:
 ```
-docker run --gpus all -d -p 7861:7860 f5-tts
+docker run --gpus all -d -p 7861:7860 f5-e2-tts
 ```
 ### Deploy Option 2: as stack:
 ```
 services:
   app:
-    image: f5-tts
+    image: f5-e2-tts
     deploy:
       resources:
         reservations:
@@ -26,7 +26,7 @@ services:
 ```
 ## Force update:
 ```
-docker rm -f f5-tts
-docker rmi -f f5-tts
-docker build --no-cache --pull -t f5-tts --file dockerfile-f5-tts https://github.com/procrastinando/dockerfile-nvidia-collection.git#main:.
+docker rm -f f5-e2-tts
+docker rmi -f f5-e2-tts
+docker build --no-cache --pull -t f5-e2-tts --file dockerfile-f5-e2-tts https://github.com/procrastinando/dockerfile-nvidia-collection.git#main:.
 ```
