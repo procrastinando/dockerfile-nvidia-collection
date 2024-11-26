@@ -63,6 +63,7 @@ RUN pip install ./modules/F5-TTS
 #RUN pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
 
 # Install fairseq (for development)
+RUN pip install --upgrade pip==23.2.1
 RUN git clone https://github.com/pytorch/fairseq.git /opt/fairseq
 WORKDIR /opt/fairseq
 RUN pip install --editable ./
