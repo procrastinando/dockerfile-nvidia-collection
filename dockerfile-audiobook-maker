@@ -1,94 +1,76 @@
-# Use the official NVIDIA base image with CUDA 12.1 support
-FROM nvidia/cuda:12.1.0-devel-ubuntu22.04
+# Base image with Ubuntu 22.04 and CUDA 12.1
+FROM nvidia/cuda:12.1.1-base-ubuntu22.04
 
 # Set environment variables
 ENV DEBIAN_FRONTEND=noninteractive \
     PYTHONUNBUFFERED=1 \
-    LANG=C.UTF-8 \
-    LC_ALL=C.UTF-8
+    PATH=/root/.local/bin:$PATH
 
-# Install system dependencies
+# Update and install required system packages
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    gcc g++ libopenblas-dev \
-    python3.11 \
-    python3.11-venv \
-    python3.11-dev \
+    python3.11 python3.11-venv python3.11-dev \
     git \
-    wget \
     ffmpeg \
-    build-essential \
+    espeak-ng \
     curl \
-    libsndfile1 \
-    && rm -rf /var/lib/apt/lists/*
-
-# Install pip and set Python alternatives
-RUN curl -sS https://bootstrap.pypa.io/get-pip.py | python3.11
-RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.11 1
-RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Clone the audiobook_maker repository
-RUN git clone https://github.com/JarodMica/audiobook_maker.git /opt/audiobook_maker
-WORKDIR /opt/audiobook_maker
+WORKDIR /app
+RUN git clone https://github.com/JarodMica/audiobook_maker.git && \
+    cd audiobook_maker && git submodule init && git submodule update
 
-# Set up virtual environment
-RUN python -m venv venv
-ENV PATH="/opt/audiobook_maker/venv/bin:$PATH"
-
-# Install basic requirements for the GUI
-RUN pip install --upgrade pip && pip install -r requirements.txt
-
-# Pull and update submodules
-RUN git submodule init && git submodule update
+# Set up the Python virtual environment
+WORKDIR /app/audiobook_maker
+RUN python3.11 -m venv venv && \
+    . ./venv/bin/activate && \
+    pip install --upgrade pip && \
+    pip install -r requirements.txt
 
 # Install TortoiseTTS
-WORKDIR /opt/audiobook_maker/modules/tortoise_tts_api
-RUN git submodule init && git submodule update
-RUN pip install modules/tortoise_tts modules/dlas .
-WORKDIR /opt/audiobook_maker
+RUN . ./venv/bin/activate && \
+    cd modules/tortoise_tts_api && \
+    git submodule init && git submodule update && \
+    pip install modules/tortoise_tts modules/dlas && \
+    pip install . && \
+    cd ../..
 
-# Install StyleTTS 2
-WORKDIR /opt/audiobook_maker/modules/styletts-api
-RUN git submodule init && git submodule update
-RUN pip install modules/StyleTTS2 .
-# Install monotonic align
-RUN pip install git+https://github.com/resemble-ai/monotonic_align.git
-WORKDIR /opt/audiobook_maker
+# Install StyleTTS2
+RUN . ./venv/bin/activate && \
+    cd modules/styletts-api && \
+    git submodule init && git submodule update && \
+    pip install modules/StyleTTS2 && \
+    pip install . && \
+    cd ../.. && \
+    pip install git+https://github.com/resemble-ai/monotonic_align.git && \
+    pip install nltk && \
+    python ./modules/styletts-api/modules/StyleTTS2/styletts2/download_punkt.py
+
+# Download StyleTTS model and config
+RUN mkdir -p ./engines/styletts/base && \
+    cd ./engines/styletts/base && \
+    curl -L -o "epochs_2nd_00020.pth" "https://huggingface.co/yl4579/StyleTTS2-LibriTTS/resolve/d2ca3f14cf019cd2da653c74564e04f8e1f5c5ab/Models/LibriTTS/epochs_2nd_00020.pth?download=true" && \
+    curl -L -o "config.yml" "https://huggingface.co/yl4579/StyleTTS2-LibriTTS/resolve/d2ca3f14cf019cd2da653c74564e04f8e1f5c5ab/Models/LibriTTS/config.yml?download=true"
 
 # Install F5-TTS
-RUN pip install ./modules/F5-TTS
+RUN . ./venv/bin/activate && \
+    pip install ./modules/F5-TTS
 
-## Install RVC
-#RUN pip install git+https://github.com/facebookresearch/fairseq.git
-
-# Ensure PyTorch with CUDA 12.1 is installed
-#RUN pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+# Install RVC
+RUN . ./venv/bin/activate && \
+    pip install rvc-python
 
 # Install fairseq (for development)
+RUN . ./venv/bin/activate
 RUN pip install --upgrade pip==23.2.1
 RUN git clone https://github.com/pytorch/fairseq.git /opt/fairseq
 WORKDIR /opt/fairseq
 RUN pip install --editable ./
 
-# Install NVIDIA Apex for faster training
-RUN git clone https://github.com/NVIDIA/apex.git /opt/apex
-WORKDIR /opt/apex
-RUN pip install -v --no-cache-dir --config-settings="build.cpp_ext=true" \
-    --config-settings="build.cuda_ext=true" \
-    --config-settings="build.deprecated_fused_adam=true" \
-    --config-settings="build.xentropy=true" \
-    --config-settings="build.fast_multihead_attn=true" ./
+# Ensure the correct version of PyTorch is installed
+RUN . ./venv/bin/activate && \
+    pip uninstall torch -y && \
+    pip install torch==2.4.0 torchvision==0.19.0 torchaudio==2.4.0 --index-url https://download.pytorch.org/whl/cu121
 
-# Install PyArrow for large datasets
-RUN pip install pyarrow
-
-# Replace Windows-specific `finish_styletts_install.bat` steps
-RUN wget https://github.com/espeak-ng/espeak-ng/releases/download/1.51/espeak-ng-X64.msi -O espeak-ng.msi && \
-    apt-get install -y msitools && \
-    msiextract -C /usr/local espeak-ng.msi && \
-    rm espeak-ng.msi
-ENV PHONEMIZER_ESPEAK_LIBRARY="/usr/local/libespeak-ng.so"
-ENV PHONEMIZER_ESPEAK_PATH="/usr/local"
-
-# Expose the application entry point
-WORKDIR /opt/audiobook_maker
-ENTRYPOINT ["/bin/bash"]
+# Default command to activate the virtual environment and launch the interface
+CMD ["/bin/bash", "-c", ". /app/audiobook_maker/venv/bin/activate && python /app/audiobook_maker/src/controller.py"]
