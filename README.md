@@ -95,3 +95,36 @@ docker rm -f styletts-app-1
 docker rmi -f styletts
 docker build --no-cache --pull -t styletts --file dockerfile-styletts https://github.com/procrastinando/dockerfile-nvidia-collection.git#main:.
 ```
+
+# 4. TORTOISE-TTS:
+
+## Build the image:
+```
+docker build -t tortoise --file dockerfile-tortoise https://github.com/procrastinando/dockerfile-nvidia-collection.git#main:.
+```
+### Deploy Option 1: by command:
+```
+docker run --gpus all -d -p 7863:7860 tortoise
+```
+### Deploy Option 2: as stack:
+```
+services:
+  app:
+    image: tortoise
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    ports:
+      - "7863:7860"
+    restart: unless-stopped
+```
+## Force update:
+```
+docker rm -f tortoise-app-1
+docker rmi -f tortoise
+docker build --no-cache --pull -t tortoise --file dockerfile-tortoise https://github.com/procrastinando/dockerfile-nvidia-collection.git#main:.
+```
