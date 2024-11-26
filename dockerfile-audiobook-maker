@@ -50,8 +50,7 @@ WORKDIR /opt/audiobook_maker/modules/styletts-api
 RUN git submodule init && git submodule update
 RUN pip install modules/StyleTTS2 .
 # Install monotonic align
-RUN wget -O monotonic_align-1.2-cp311-cp311-linux_x86_64.whl https://github.com/resemble-ai/monotonic_align/releases/download/v1.2/monotonic_align-1.2-cp311-cp311-linux_x86_64.whl
-RUN pip install ./monotonic_align-1.2-cp311-cp311-linux_x86_64.whl && rm monotonic_align-1.2-cp311-cp311-linux_x86_64.whl
+RUN pip install git+https://github.com/resemble-ai/monotonic_align.git
 WORKDIR /opt/audiobook_maker
 
 # Install F5-TTS
