@@ -25,7 +25,7 @@ RUN git clone https://github.com/JarodMica/audiobook_maker.git && \
 WORKDIR /app/audiobook_maker
 RUN python3.11 -m venv venv && \
     . ./venv/bin/activate && \
-    pip install --upgrade pip && \
+    pip install --upgrade pip==23.2.1 && \
     pip install -r requirements.txt
 
 # Install TortoiseTTS
@@ -59,7 +59,6 @@ RUN . ./venv/bin/activate && \
     pip install ./modules/F5-TTS
 
 # Install RVC
-RUN pip install --upgrade pip==23.2.1
 RUN . ./venv/bin/activate && \
     pip install rvc-python
 
