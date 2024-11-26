@@ -56,13 +56,28 @@ WORKDIR /opt/audiobook_maker
 # Install F5-TTS
 RUN pip install ./modules/F5-TTS
 
-# Install RVC
-RUN pip install git+https://github.com/facebookresearch/fairseq.git
-#RUN pip install fairseq
-RUN pip install git+https://github.com/JarodMica/rvc-python
+## Install RVC
+#RUN pip install git+https://github.com/facebookresearch/fairseq.git
 
 # Ensure PyTorch with CUDA 12.1 is installed
-RUN pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+#RUN pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+
+# Install fairseq (for development)
+RUN git clone https://github.com/pytorch/fairseq.git /opt/fairseq
+WORKDIR /opt/fairseq
+RUN pip install --editable ./
+
+# Install NVIDIA Apex for faster training
+RUN git clone https://github.com/NVIDIA/apex.git /opt/apex
+WORKDIR /opt/apex
+RUN pip install -v --no-cache-dir --global-option="--cpp_ext" \
+    --global-option="--cuda_ext" \
+    --global-option="--deprecated_fused_adam" \
+    --global-option="--xentropy" \
+    --global-option="--fast_multihead_attn" ./
+
+# Install PyArrow for large datasets
+RUN pip install pyarrow
 
 # Replace Windows-specific `finish_styletts_install.bat` steps
 RUN wget https://github.com/espeak-ng/espeak-ng/releases/download/1.51/espeak-ng-X64.msi -O espeak-ng.msi && \
