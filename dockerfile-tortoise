@@ -1,0 +1,31 @@
+# Use Ubuntu 22.04 as the base image
+FROM nvidia/cuda:12.2.0-base-ubuntu22.04
+
+# Set environment variables to prevent interactive prompts
+ENV DEBIAN_FRONTEND=noninteractive \
+    TZ=Etc/UTC \
+    LANG=C.UTF-8 \
+    LC_ALL=C.UTF-8
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    python3.9 python3.9-venv python3.9-dev python3-pip git wget \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create a working directory
+WORKDIR /app
+
+# Clone the repository
+RUN git clone https://github.com/procrastinando/tortoise-tts-google-colab /app
+
+# Install Python dependencies
+RUN pip install --upgrade pip \
+    && pip install -r requirements.txt \
+    && pip install gradio pysrt
+
+# Expose port 7860 for the Gradio app
+EXPOSE 7860
+
+# Command to run the application
+CMD ["python3.9", "app.py", "--server.port=7860", "--server.host=0.0.0.0"]
