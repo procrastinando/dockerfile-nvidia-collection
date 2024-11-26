@@ -57,8 +57,7 @@ WORKDIR /opt/audiobook_maker
 RUN pip install ./modules/F5-TTS
 
 # Install RVC
-RUN wget https://huggingface.co/Jmica/rvc/resolve/main/fairseq-0.12.4-cp311-cp311-linux_x86_64.whl -O fairseq.whl
-RUN pip install ./fairseq.whl && rm fairseq.whl
+RUN pip install git+https://github.com/facebookresearch/fairseq.git
 RUN pip install git+https://github.com/JarodMica/rvc-python
 
 # Ensure PyTorch with CUDA 12.1 is installed
