@@ -49,4 +49,4 @@ RUN python ./modules/StyleTTS2/styletts2/download_punkt.py
 
 # Set the entrypoint to run the web UI
 EXPOSE 7860
-CMD ["python", "webui.py"]
+CMD ["python", "webui.py", "--server_name", "0.0.0.0"]

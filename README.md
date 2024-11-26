@@ -63,21 +63,21 @@ docker rmi -f fish-speech
 docker build --no-cache --pull -t fish-speech --file dockerfile-fish-speech https://github.com/procrastinando/dockerfile-nvidia-collection.git#main:.
 ```
 
-# 3. AUDIOBOOK MAKER:
+# 3. STYLETTS:
 
 ## Build the image:
 ```
-docker build -t audiobook-maker --file dockerfile-audiobook-maker https://github.com/procrastinando/dockerfile-nvidia-collection.git#main:.
+docker build -t styletts --file dockerfile-styletts https://github.com/procrastinando/dockerfile-nvidia-collection.git#main:.
 ```
 ### Deploy Option 1: by command:
 ```
-docker run --gpus all -d -p 7862:7860 audiobook-maker
+docker run --gpus all -d -p 7863:7860 styletts
 ```
 ### Deploy Option 2: as stack:
 ```
 services:
   app:
-    image: audiobook-maker
+    image: styletts
     deploy:
       resources:
         reservations:
@@ -91,7 +91,7 @@ services:
 ```
 ## Force update:
 ```
-docker rm -f audiobook-maker
-docker rmi -f audiobook-maker
-docker build --no-cache --pull -t audiobook-maker --file dockerfile-audiobook-maker https://github.com/procrastinando/dockerfile-nvidia-collection.git#main:.
+docker rm -f styletts
+docker rmi -f styletts
+docker build --no-cache --pull -t styletts --file dockerfile-styletts https://github.com/procrastinando/dockerfile-nvidia-collection.git#main:.
 ```
