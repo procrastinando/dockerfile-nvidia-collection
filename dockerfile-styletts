@@ -48,5 +48,6 @@ RUN mkdir -p models/pretrain_base_1 && \
 RUN python ./modules/StyleTTS2/styletts2/download_punkt.py
 
 # Set the entrypoint to run the web UI
+ENV GRADIO_SERVER_NAME="0.0.0.0"
 EXPOSE 7860
-CMD ["python", "webui.py", "--server_name", "0.0.0.0"]
+CMD ["python", "webui.py"]

@@ -91,7 +91,7 @@ services:
 ```
 ## Force update:
 ```
-docker rm -f styletts
+docker rm -f styletts-app-1
 docker rmi -f styletts
 docker build --no-cache --pull -t styletts --file dockerfile-styletts https://github.com/procrastinando/dockerfile-nvidia-collection.git#main:.
 ```
