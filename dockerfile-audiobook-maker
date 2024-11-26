@@ -39,7 +39,8 @@ RUN . ./venv/bin/activate && \
 # Install StyleTTS2
 RUN . ./venv/bin/activate && \
     cd modules/styletts-api && \
-    git submodule init && git submodule update && \
+    git submodule init && \
+    git submodule update --depth 1 && \ 
     pip install modules/StyleTTS2 && \
     pip install . && \
     cd ../.. && \
